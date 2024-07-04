@@ -40,6 +40,17 @@ def load_image(scr, x, y):
     
     return image, rect
 
+def load_pol(scr, x, y):
+    image = pygame.image.load(scr).convert()
+    image = pygame.transform.scale(image, (600, 600))
+    rect = image.get_rect(center=(x, y))
+    
+    transparent = image.get_at((0,0))
+    image.set_colorkey(transparent)
+    
+    return image, rect
+
+
 def move(head, snake):
     global DIRECTION, KEYS, GAME_POINTS
     
@@ -79,8 +90,8 @@ def move(head, snake):
         
     head.move_ip(DIRECTION)
     
-def pickup():
-    global apple_rect, head_rect, GAME_POINTS, snake, skrim_rect
+def pickup(head):
+    global apple_rect, head_rect, GAME_POINTS, snake, skrim_rect, ejik_rect
 
 #     GOLDI = randint(0,1)
 #     print(GOLDI)
@@ -94,12 +105,22 @@ def pickup():
         kitai_rect.x = randint(50,550)
         kitai_rect.y = randint(50,550)
         kitai_sound.play()
+        ejik_rect.x = randint(50,550)
+        ejik_rect.y = randint(50,550)
         
     if head_rect.colliderect(kitai_rect):
         skrim_sound.play()
         kitai_rect.x = randint(50,550)
         kitai_rect.y = randint(50,550)
         GAME_POINTS -= 10
+        print(f'GAME_POINTS:{GAME_POINTS}')
+    
+    if head_rect.colliderect(ejik_rect):
+        head.right -= 25
+        head.left -= 25
+        head.bottom -= 25
+        head.top -= 25
+        GAME_POINTS -= 20
         print(f'GAME_POINTS:{GAME_POINTS}')
 
         
@@ -125,22 +146,32 @@ def score():
     text_rect = text.get_rect(center=(300,550))
     screen.blit(text, text_rect)
     if GAME_POINTS < 0:
-        text2 = font.render('GAME OVER', True,(255,0,90))
+        text2 = font.render('GAME OVER RETRY SPACE', True,(255,0,90))
         text_rect2 = text2.get_rect(center=(300,300))
         screen.blit(text2, text_rect2)
         SPEED = 0
         
-# def gameover():
-#     global snake, head_rect
-#     for segment in snake[1:]:
-#         if head_rect.colliderect(segment):
-#             return True
-#         return False
-    
+
+def retry():
+    global KEYS, GAME_POINTS, SPEED
+    if KEYS[K_SPACE]:
+        SPEED = 10
+        GAME_POINTS = 0
+        head_rect.x = 400
+        head_rect.y = 300
+        apple_rect.x = 200
+        apple_rect.y = 300
+        kitai_rect.x = 500
+        kitai_rect.y = 500
+        ejik_rect.x = 400
+        ejik_rect.y = 400
+
+pole_image, pole_rect = load_pol('pole.jpeg',300,300)
 head_image, head_rect = load_image('golovzmeika.png',400,300)
 apple_image, apple_rect = load_image('apple.jpg',200,300)
 body_image, body_rect = load_image('baget.png',450,300)
 kitai_image, kitai_rect = load_image('kitai.png',500,500)
+ejik_image, ejik_rect = load_image('egik.png',400,400)
 #goappl_image, goappl_rect = load_image('goldapple.png',300,300)
 
 snake = [head_rect, body_rect]
@@ -156,17 +187,20 @@ while 1:
             
     KEYS = pygame.key.get_pressed()
         
+    screen.blit(pole_image, pole_rect)
     screen.blit(head_image, head_rect)
     screen.blit(apple_image, apple_rect)
-    screen.blit(kitai_image, kitai_rect) 
+    screen.blit(kitai_image, kitai_rect)
+    screen.blit(ejik_image, ejik_rect)
 #     screen.blit(goappl_image, goappl_rect)
     
     for segment in snake[1:]:
         screen.blit(body_image, segment)
     
     move(head_rect, snake)
-    pickup()
+    pickup(head_rect)
     score()
+    retry()
     
 #     if gameover():
 #         text3 = font.render('GAME OVER', True,(255,0,90))
